@@ -1,4 +1,5 @@
 from os.path import join
+import os
 import codecs
 import json
 from collections import defaultdict as dd
@@ -61,6 +62,8 @@ class PaperDataUtils:
 
     def load_inverted_index(self, fold):
         rfpath = join(self.inverted_index_dir, 'clean-papers-test-ii-{}.json'.format(fold))
+        if not os.path.isfile(rfpath):
+            self.build_inverted_index(fold)
         with codecs.open(rfpath, 'r', encoding='utf-8') as rf:
             word2ids = json.load(rf)
             return word2ids
