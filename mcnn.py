@@ -1,10 +1,7 @@
 from os.path import join
 import tensorflow as tf
 import tflearn
-from gensim.models import Word2Vec
 import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
-from collections import defaultdict as dd
 from tflearn.metrics import Accuracy
 from tflearn.layers.conv import conv_2d
 from tflearn.layers.estimator import regression
@@ -80,6 +77,12 @@ class MCNNModel:
         return title_matrices, author_matrices
 
     def prepare_network_input(self, role, fold):
+        """
+        prepare cnn model input
+        :param role: 'train' or 'test'
+        :param fold: cross validation fold
+        :return: constructed matrices
+        """
         pos_pairs = self.paper_data_utils.construct_positive_paper_pairs(role, fold)
         logger.info('positive paper pairs built')
         neg_pairs = self.paper_data_utils.load_train_neg_paper_pairs(fold)
@@ -92,7 +95,7 @@ class MCNNModel:
         utils.dump_data(neg_title_matrices, self.matrices_dir, 'neg_title_matrices_{}.pkl'.format(fold))
         return pos_title_matrices, pos_author_matrices, neg_title_matrices, neg_author_matrices
 
-    def load_network_input(self, role, fold):
+    def load_network_input(self, role, fold):  # load cnn model input
         if role == 'train':
             pos_title_matrices, pos_author_matrices, neg_title_matrices, neg_author_matrices = self.prepare_network_input(role, fold)
 
@@ -148,7 +151,7 @@ class MCNNModel:
 
             return X_title_train, X_title_val, X_author_train, X_author_val, Y_train, Y_validation
 
-    def create_model_for_multiple_input(self):
+    def create_model_for_multiple_input(self):  # main cnn model
         network1 = input_data(shape=[None, self.title_mat_size, self.title_mat_size, 1])
         network2 = input_data(shape=[None, self.author_mat_size, self.author_mat_size, 1])
 
@@ -188,6 +191,13 @@ class MCNNModel:
         return model
 
     def predict_similarities(self, npaper, cpapers, model):
+        """
+
+        :param npaper: one source paper
+        :param cpapers: some candidate papers
+        :param model: pre-trained cnn model
+        :return: similarity scores
+        """
         X = []
         X_title = []
         X_author = []
@@ -216,7 +226,6 @@ class MCNNModel:
         model.save(outpath)
 
     def evaluate(self, fold):
-        eval_dict = {}
         tf.reset_default_graph()  # restart kernel  # also need
         model = self.create_model_for_multiple_input()
         model.load(join(self.model_dir, 'cnn_model_{}.mod'.format(fold)))
