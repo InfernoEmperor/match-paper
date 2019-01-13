@@ -211,7 +211,7 @@ class MCNNModel:
         X_title, X_title_val, X_author, X_author_val, Y, Y_val = self.load_network_input('train', fold)
         model = self.create_model_for_multiple_input()
         model.fit([X_title, X_author], Y, validation_set=([X_title_val, X_author_val], Y_val),
-                  batch_size=100, n_epoch=1, run_id=str(fold), show_metric=True)
+                  batch_size=100, n_epoch=10, run_id=str(fold), show_metric=True)
         outpath = join(self.model_dir, 'cnn_model_{}.mod'.format(fold))
         model.save(outpath)
 
